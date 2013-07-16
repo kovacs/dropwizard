@@ -140,7 +140,20 @@ public class DefaultServerFactory extends AbstractServerFactory {
                                                                   server,
                                                                   applicationHandler,
                                                                   adminHandler);
-        server.setHandler(addRequestLog(routingHandler, environment.getName()));
+		    Handler[] handlers = new Handler[2];
+				boolean dev_mode = true; // FIXME - Need a way to get a config option passed in for this
+		    if (dev_mode) {
+		      // add Jetty resource handler to reload static files from disk instead of classloader
+		      ResourceHandler resource_handler = new ResourceHandler();
+		      resource_handler.setResourceBase("src/main/resources/"); // FIXME - Ditto. Need a way to set a config option for this value
+		      handlers[0] = addRequestLog(resource_handler, environment.getName());
+		    }
+		    // add default DW handler
+		    handlers[1] = addRequestLog(routingHandler, environment.getName());
+
+		    HandlerList handlerList = new HandlerList();
+		    handlerList.setHandlers(handlers);
+		    server.setHandler(handlerList);
         return server;
     }
 
